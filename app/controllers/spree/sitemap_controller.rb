@@ -12,7 +12,8 @@ class Spree::SitemapController < Spree::BaseController
       format.html {  }
       format.xml do
         nav = _build_taxon_hash
-        nav = _build_pages_hash nav
+        nav = _build_static_page_hash nav
+        nav = _build_post_hash nav
         nav = _add_products_to_tax nav, false
         render :layout => false, :xml => _build_xml(nav, @public_dir)
       end
@@ -78,6 +79,26 @@ class Spree::SitemapController < Spree::BaseController
     @pages.each do |page|
       nav[page.slug] = {'name' => page.title,
                         'link' => page.slug.gsub(/^\//, ''),
+                        'updated' => page.updated_at}
+    end
+    nav
+  end
+  
+  def _build_post_hash(nav)
+    return nav if Spree::Post.published.empty?
+    Spree::Post.published.each do |post|
+      nav[post.slug] = {'name' => post.name,
+                        'link' => post.slug,
+                        'updated' => post.updated_at}
+    end
+    nav
+  end
+  
+  def _build_static_page_hash(nav)
+    return nav if Spree::StaticPage.published.empty?
+    Spree::StaticPage.published.each do |page|
+      nav[page.slug] = {'name' => page.name,
+                        'link' => page.slug,
                         'updated' => page.updated_at}
     end
     nav
